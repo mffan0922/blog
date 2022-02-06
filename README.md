@@ -1,6 +1,6 @@
 ## [诲之的博客](https://blog.rustle.cc)
 
-本博客是从[黄玄的博客](https://github.com/Huxpro/huxpro.github.io)借鉴修改而来，最原始的博客模板是[clean blog jekyll](https://github.com/StartBootstrap/startbootstrap-clean-blog-jekyll)，个人认为，博客整体风格是很棒的，对于并不是前端的小白来讲，也比较容易上手，适合折腾一下，不过根绝博主自己的经验还是先打好基础再去折腾，会比较不走弯路，不会浪费过多的时间。
+本博客是从[黄玄的博客](https://github.com/Huxpro/huxpro.github.io)借鉴修改而来，最原始的博客模板是[clean blog jekyll](https://github.com/StartBootstrap/startbootstrap-clean-blog-jekyll)，个人认为，博客整体风格是很棒的，对于并不是前端的小白来讲，也比较容易上手，适合折腾一下，不过根据博主自己的经验还是先打好基础再去折腾，会比较不走弯路，不会浪费过多的时间。
 
 ## User Manual 👉
 
