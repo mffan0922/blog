@@ -150,6 +150,8 @@ WantedBy=multi-user.target
 - 简单的方法
 	```bash
 	apt install python3-certbot-nginx certbot
+    # 之所以重新link一遍，是因为如上命令会破坏掉之前的/usr/bin/nginx的软链接，放置一个标准的nginx程序在这个地方
+    ln -s /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 	certbot --nginx-server-root /usr/local/nginx/conf
 	certbot renew --dry-run
 	```
@@ -174,7 +176,7 @@ jekyll build
 
 ## 7、安装nextcloud网盘
 
-最近在自己家中的台式机安装了Debian11.2，之前在Windows下是使用[坚果云](https://www.jianguoyun.com/)来做数据同步盘的，Debian确实也可以安装，只不过只能使用root用户登录。另外数据还是存放在别人服务器的，虽然出于商业道德，我们有理由坚信，坚果云不会窃取我们的数据信息。但是想一下，你会不会把自己的隐私信息存放在线上服务？所以综合考虑，我决定再次折腾一下nextcloud网盘。
+最近在自己家中的台式机安装了Debian11.2，之前在Windows下是使用[坚果云](https://www.jianguoyun.com/)来做数据同步盘的，Debian确实也可以安装，只不过只能使用root用户登录。另外数据还是存放在别人服务器的，虽然出于商业道德，我们有理由坚信，坚果云不会窃取我们的数据信息。但是还是想把自己的隐私信息存放在自己的服务器上，所以，我决定再次折腾一下nextcloud网盘。
 
 #### 1. 下载nextcloud服务器版
 
@@ -182,7 +184,7 @@ jekyll build
 
 ```bash
 wget https://download.nextcloud.com/server/releases/nextcloud-23.0.3.zip
-unzip -q nextcloud-23.0.3.zip /opt
+unzip -q nextcloud-23.0.3.zip -d /opt
 chown -R www-data:www-data /opt/nextcloud
 ```
 
@@ -230,7 +232,7 @@ sudo -u www-data php8.0 /opt/nextcloud/occ config:app:set files max_chunk_size -
 ```
 - 访问速度慢-1
 ```bash
-apt install php8.0-memcache*
+apt install php8.0-memcache* memcached
 'memcache.distributed' => '\OC\Memcache\Memcached',
 'memcached_servers' => array(
   array('localhost', 11211),
@@ -248,11 +250,9 @@ apt install php8.0-redis*
 - 开启内存访问
 ```bash
 apt install php8.0-apcu
-echo 'apc.enable_cli=1' >> /etc/php/7.0/mods-available/apcu.ini
-/etc/php/8.0/fpm/php.ini
-apc.enable_cli = 1
-/etc/php/8.0/fpm/cli
-apc.enable_cli = 1
+echo 'apc.enable_cli=1' >> /etc/php/8.0/mods-available/apcu.ini
+echo 'apc.enable_cli=1' >> /etc/php/8.0/cli/php.ini
+echo 'apc.enable_cli=1' >> /etc/php/8.0/fpm/php.ini
 ```
 - /etc/php/8.0/fpm/php.ini 文件调优
 ```bash
@@ -265,9 +265,10 @@ max_input_time = 3600;
 - /opt/nextcloud/config/config.php 文件调优
 ```bash
 'memcache.local' => '\OC\Memcache\APCu',  # 本地缓存优化
-'filelocking.enabled' => false  # 解决网盘文件(夹)无法删除，但是检测会报错，建议删除后在改为true
+'filelocking.enabled' => true  # 解决网盘文件(夹)无法删除时设置为false，但是检测会报错，建议删除后在改为true
 'appstoreenabled' => true,  # 解决appstore无法打开
 'appstoreurl' => 'https://www.orcy.net/ncapps/v1/', 
+'allow_local_remote_servers' => true,
 ```
 - nginx的配置文件调优
 ```bash
