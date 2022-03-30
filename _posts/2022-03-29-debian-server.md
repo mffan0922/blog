@@ -114,16 +114,32 @@ Configuration summary
 如上是默认安装之后，各模块所在路径，可以通过编译选项指定，详见[官方指导文档](https://nginx.org/en/docs/configure.html)。安装好nginx之后，需要制作一个nginx.service文件，放在/lib/systemd/system/目录下，然后就可以使用`systemctl`命令来管理服务了。
 
 ```bash
+# Stop dance for nginx
+# =======================
+#
+# ExecStop sends SIGSTOP (graceful stop) to the nginx process.
+# If, after 5s (--retry QUIT/5) nginx is still running, systemd takes control
+# and sends SIGTERM (fast shutdown) to the main process.
+# After another 5s (TimeoutStopSec=5), and if nginx is alive, systemd sends
+# SIGKILL to all the remaining processes in the process group (KillMode=mixed).
+#
+# nginx signals reference doc:
+# http://nginx.org/en/docs/control.html
+#
 [Unit]
-Description=nginx
-After=network.target
-  
+Description=A high performance web server and a reverse proxy server
+Documentation=man:nginx(8)
+After=network.target nss-lookup.target
+
 [Service]
 Type=forking
+PIDFile=/usr/local/nginx/logs/nginx.pid
 ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
 ExecReload=/usr/local/nginx/sbin/nginx -s reload
 ExecStop=/usr/local/nginx/sbin/nginx -s quit
+TimeoutStopSec=5
 PrivateTmp=true
+KillMode=mixed
   
 [Install]
 WantedBy=multi-user.target
@@ -222,7 +238,9 @@ listen.allowed_clients = 127.0.0.1   # 取消该条注释
 
 #### 4. 配置NGINX文件并登录使用安装导向
 
-nextcloud默认是支持Apache web服务器的，官方指导文档也是推荐使用Apache作为默认，但是工作需要，使用的是nginx web server，配置上有很大的不同，好在官方给出了一个非官方的[nginx配置示例](https://dev.to/yparam98/nextcloud-setup-with-nginx-2cm1)，可以参考下。配置完了之后重启nginx服务即可，输入指定域名（以及端口）就可以看到安装导向
+nextcloud默认是支持Apache web服务器的，官方指导文档也是推荐使用Apache作为默认，但是工作需要，使用的是nginx web server，配置上有很大的不同，好在官方给出了一个非官方的[nginx配置示例](https://dev.to/yparam98/nextcloud-setup-with-nginx-2cm1)，可以参考下。配置完了之后重启nginx服务即可，输入指定域名（以及端口）就可以看到安装导向。
+
+**安装过程中，或者在后续调优过程中如果遇到报错，一定要记得看系统日志，位置在`nextcloud/data/nextcloud.log`，很多问题现象都可以在这里找到答案，或者根据这里的报错信息去搜索引擎寻找答案。**
 
 #### 5. nextcloud问题以及调优
 
