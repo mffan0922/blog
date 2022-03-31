@@ -326,6 +326,30 @@ sudo -u www-data php8.0 occ files:scan --all
 apt install libmagickcore-6.q16-6-extra
 ```
 
+#### 6. 建议安装的插件
+
+如下是推荐的插件，Calendar和Tasks是任务管理规划插件，可以相互配合；Collabora Online是word，PPT以及Excel文档编辑预览插件，但是需要一个文档服务器，最简单的办法是使用Collabora Online - Built-in CODE Server这个插件构造的内建文档服务器；Drow.io是流程图，思维导图插件，支持各种形式的；Notes是笔记插件，支持Markdown语法，可以放你心无旁骛的做笔记；Markdown Editor插件和Plain text editor的组合是为了让文本支持Markdown扩展语法。
+
+  * Calendar
+  * Tasks
+  * Collabora Online
+  * Collabora Online - Built-in CODE Server
+  * Draw.io
+  * Notes
+  * Markdown Editor
+  * Plain text editor
+  
+**Collabora Online - Built-in CODE Server**这个插件很大，直接从appstore安装的话会出现***Operation timeout***的告警，可之间在系统下执行`sudo -u www-data php -d memory_limit=1024M ./occ app:install richdocumentscode`命令，安装好了重启服务即可使用文档在线预览和编辑。
+
+#### 7. 建议禁用的插件
+
+如下是不推荐的插件，Weather status插件使用的国外的API，获取地理位置以及天气信息耗时较长；Activity插件会记录一些操作记录，感觉也挺鸡肋，切占用资源；Dashboard一样，相当于一个首页的界面，加载耗时很长；最后一个Text文本插件是Nextcloud自带的文本编辑以及预览工具，因为仅支持markdown基本语法，而且和Markdown Editor插件冲突，所以禁用掉。换成Markdown Editor和Plain text editor的组合，后者是必须的，不然前者不起作用。
+
+  * Weather status
+  * Activity
+  * Dashboard
+  * Text
+
 
 > **建议所有配置设置完毕之后，重启nginx服务和php-fpm服务**
 
