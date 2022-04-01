@@ -438,9 +438,13 @@ server {
   }
 ```
 
-#### 3. 注意事项
+#### 3. 安装服务
 
-需要把nginx配置文件中的用户改为www-data，并且修改/var/run/php/php8.0-fpm.sock的所有者和所属组为www-data。
+浏览器直接访问对应于名，没有问题的话会出现注册信息界面，按照提示填写即可。
+
+#### 4. 注意事项
+
+最重要的是www-data用户问题，需要把nginx配置文件中的用户改为www-data，需要修改/var/run/php/php8.0-fpm.sock的所有者和所属组为www-data，还要把dokuwiki的整体目录所有者和所属组改为www-data。
 
 
 ## 9、参考链接
