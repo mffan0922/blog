@@ -1,7 +1,7 @@
 ---
 layout       : post
 title        : "Debian Server部署全过程记录"
-subtitle     : "Make it "
+subtitle     : "Make it unified"
 date         : 2022-03-29 08:54:06
 author       : "Manford Fan"
 catalog      : false
@@ -353,7 +353,97 @@ apt install libmagickcore-6.q16-6-extra
 
 > **建议所有配置设置完毕之后，重启nginx服务和php-fpm服务**
 
-## 8、参考链接
+## 8、安装dokuwiki笔记服务
+
+本来想用nextcloud记作网盘服务又做笔记服务的，用了几天发现不太合适，因为nextcloud虽然有客户端，在网页上编辑还是不是很方便。而且，上面写的Markdown插件被证明也不是很好用，在手机端不能解析语法，包括标准语法都无法解析。所以，还是做一个单独的wiki页面吧。[DokuWiki](https://www.dokuwiki.org/dokuwiki)是有php语言开发的，无数据库类型的wiki服务，安装配置也还算方便，个人使用应该是够了的。
+
+#### 1. 准备工作
+
+首先是下载[dokuwiki安装包](https://download.dokuwiki.org/)，这里并没有选择stable版本的，而是选择了Development Snapshot，因为stable版本的是2020年的，比较老；而且明确写着不支持php8及以上，安装nextcloud的时候安装了php8.0，想直接复用，当nginx也是复用之前的程序。
+
+#### 2. 配置NGINX配置文件
+
+可以使用参考链接中的配置：
+
+```nginx
+server {
+  server_name wiki.ulyaoth.net;
+  listen 80;
+  autoindex off;
+  client_max_body_size 15M;
+  client_body_buffer_size 128k;
+  index index.html index.htm index.php doku.php;
+  access_log  /var/log/nginx/wiki.ulyaoth.net/access.log;
+  error_log  /var/log/nginx/wiki.ulyaoth.net/error.log;
+  root /usr/share/nginx/dokuwiki;
+
+  location / {
+    try_files $uri $uri/ @dokuwiki;
+  }
+
+  location ~ ^/lib.*\.(gif|png|ico|jpg)$ {
+    expires 30d;
+  }
+
+  location = /robots.txt  { access_log off; log_not_found off; }
+  location = /favicon.ico { access_log off; log_not_found off; }
+  location ~ /\.          { access_log off; log_not_found off; deny all; }
+  location ~ ~$           { access_log off; log_not_found off; deny all; }
+
+  location @dokuwiki {
+    rewrite ^/_media/(.*) /lib/exe/fetch.php?media=$1 last;
+    rewrite ^/_detail/(.*) /lib/exe/detail.php?media=$1 last;
+    rewrite ^/_export/([^/]+)/(.*) /doku.php?do=export_$1&id=$2 last;
+    rewrite ^/(.*) /doku.php?id=$1 last;
+  }
+
+  location ~ \.php$ {
+    try_files $uri =404;
+    fastcgi_pass   unix:/var/run/php-fpm/wiki.ulyaoth.net.sock;
+    fastcgi_index  index.php;
+    fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include /etc/nginx/fastcgi_params;
+    fastcgi_param  QUERY_STRING     $query_string;
+    fastcgi_param  REQUEST_METHOD   $request_method;
+    fastcgi_param  CONTENT_TYPE     $content_type;
+    fastcgi_param  CONTENT_LENGTH   $content_length;
+    fastcgi_intercept_errors        on;
+    fastcgi_ignore_client_abort     off;
+    fastcgi_connect_timeout 60;
+    fastcgi_send_timeout 180;
+    fastcgi_read_timeout 180;
+    fastcgi_buffer_size 128k;
+    fastcgi_buffers 4 256k;
+    fastcgi_busy_buffers_size 256k;
+    fastcgi_temp_file_write_size 256k;
+  }
+
+  location ~ /(data|conf|bin|inc)/ {
+    deny all;
+  }
+
+  location ~ /\.ht {
+    deny  all;
+  }
+
+}
+```
+
+如果按照之前安装php时的配置，还需要使用如下块：
+
+```nginx
+  upstream php-handler {
+    server 127.0.0.1:9000;
+    #server unix:/var/run/php/php7.4-fpm.sock;
+  }
+```
+
+#### 3. 注意事项
+
+需要把nginx配置文件中的用户改为www-data，并且修改/var/run/php/php8.0-fpm.sock的所有者和所属组为www-data。
+
+
+## 9、参考链接
 
 - [NGINX官网](https://nginx.org/)
 - [Nextcloud Setup with Nginx](https://dev.to/yparam98/nextcloud-setup-with-nginx-2cm1)
@@ -362,4 +452,6 @@ apt install libmagickcore-6.q16-6-extra
 - [Let's Encrypt官网](https://letsencrypt.org/)
 - [Certbot 指南](https://certbot.eff.org/)
 - [Debian 第三方源使用](https://wiki.debian.org/DebianRepository/UseThirdParty)
+- [Nginx官方发布的DokuWiki的ngxin配置文件](https://www.nginx.com/resources/wiki/start/topics/recipes/dokuwiki/)
+- [DokuWiki官方发布的nginx配置文件](https://www.dokuwiki.org/install:nginx)
 
