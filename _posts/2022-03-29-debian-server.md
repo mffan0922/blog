@@ -12,7 +12,9 @@ tags         :
                - Server
 ---
 
-当一个念头萌生的时候，便一发不可收拾。昨天下午loading稍微轻了一点，我就又开始想要不做个自己的网盘吧，有好多东西没有统一的地方放，主要是坚果云不能再Debian下使用非root用户登录；然后又想要不把Server换成Debian吧，这样服务端和客户端都统一了，感觉也挺不错的；再然后就是想着完整的记录下部署过程，云服务器也快到期了，方便下次部署。于是，就在备份数据之后，把阿里云的服务器重置成Debian10.5了......
+当一个念头萌生的时候，便一发不可收拾。昨天下午loading稍微轻了一点，我就又开始想要不做个自己的网盘吧，有好多东西没有统一的地方放，主要是坚果云不能再Debian下使用非root用户登录；然后又想要不把Server换成Debian吧，这样服务端和客户端都统一了，感觉也挺不错的；再然后就是想着完整的记录下部署过程，云服务器也快到期了，方便下次部署。于是，就在备份数据之后，~~把阿里云的服务器重置成Debian10.5了~~......
+
+> 买了腾讯云的VPS，换成Debian11.3，440大洋5年，配置是2C/4G/1000G/6M/60G，BGP线路，实际配置肯定会有缩水，但是也还行
 
 ## 1、重装系统
 
@@ -68,8 +70,10 @@ ufw allow 443
 ufw enable
 
 # 4. 一些其他的软件
-apt install lrzsz curl wget gnupg2 ca-certificates lsb-release debian-archive-keyring
+apt install lrzsz curl wget gnupg2 ca-certificates lsb-release debian-archive-keyring dos2unix oathtool git
 ```
+
+`git`的配置详见上一篇博客。
 
 ## 4、编译安装NGINX
 
@@ -79,14 +83,34 @@ Nginx是一款高性能的反向代理服务器，支持高并发是它极具优
 # 准备工作，安装一些依赖模块
 apt install libpcre3 libpcre3-dev openssl libssl-dev zlib1g-dev
 # 从nginx官网下载安装包并安装
-wget https://nginx.org/download/nginx-1.20.2.zip
-unzip -q nginx-1.20.2.zip && cd nginx-1.20.2
-./configure --with-http_ssl_module \
---with-http_realip_module \
+wget https://nginx.org/download/nginx-1.20.2.tar.gz
+tar -xzf nginx-1.20.2.zip && cd nginx-1.20.2
+./configure  --prefix=/usr/local/nginx \
+--with-http_ssl_module \
 --with-http_v2_module \
+--with-http_realip_module \
+--with-http_addition_module \
+--with-http_sub_module \
+--with-http_dav_module \
+--with-http_flv_module \
+--with-http_mp4_module \
+--with-http_gunzip_module \
 --with-http_gzip_static_module \
+--with-http_auth_request_module \
+--with-http_random_index_module \
+--with-http_secure_link_module \
+--with-http_degradation_module \
+--with-http_slice_module \
+--with-http_stub_status_module \
+--with-mail \
+--with-mail_ssl_module \
 --with-stream \
---with-stream_ssl_module
+--with-stream_ssl_module \
+--with-stream_realip_module \
+--with-stream_ssl_preread_module \
+--with-threads \
+--user=www-data \
+--group=www-data
 make && make install
 ln -s /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 
