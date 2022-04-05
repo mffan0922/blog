@@ -12,13 +12,13 @@ tags         :
                - Server
 ---
 
-当一个念头萌生的时候，便一发不可收拾。昨天下午loading稍微轻了一点，我就又开始想要不做个自己的网盘吧，有好多东西没有统一的地方放，主要是坚果云不能再Debian下使用非root用户登录；然后又想要不把Server换成Debian吧，这样服务端和客户端都统一了，感觉也挺不错的；再然后就是想着完整的记录下部署过程，云服务器也快到期了，方便下次部署。于是，就在备份数据之后，~~把阿里云的服务器重置成Debian10.5了~~......
+当一个念头萌生的时候，便一发不可收拾。昨天下午loading稍微轻了一点，我就又开始想要不做个自己的网盘吧，有好多东西没有统一的地方放，主要是坚果云不能再Debian下使用非root用户登录；然后又想要不把Server换成Debian吧，这样服务端和客户端都统一了，感觉也挺不错的；再然后就是想着完整的记录下部署过程，云服务器也快到期了，方便下次部署。于是，就在备份数据之后，~~把阿里云的服务器重置成Debian10.5了~~把腾讯云的服务器安装成Debian11.3了......
 
 > 买了腾讯云的VPS，换成Debian11.3，440大洋5年，配置是2C/4G/1000G/6M/60G，BGP线路，实际配置肯定会有缩水，但是也还行
 
 ## 1、重装系统
 
-登录阿里云的控制台，VPS安装系统Debian10.5，倒不是不想安装11.2，阿里的镜像只支持10.5。因为重置的时候并不会给设定root密码的界面，重新安装完成之后，通过web console进入系统，第一件事就是重置root密码。可以通过`sudo passwd root`来设定，或者通过控制台界面来设定也可。此时，就可以通过远程登录工具（xshell或者SecureCRT等）使用密码登录系统了。
+~~登录阿里云的控制台，VPS安装系统Debian10.5，倒不是不想安装11.2，阿里的镜像只支持10.5。~~因为重置的时候并不会给设定root密码的界面，重新安装完成之后，通过web console进入系统，第一件事就是重置root密码。可以通过`sudo passwd root`来设定，或者通过控制台界面来设定也可。此时，就可以通过远程登录工具（xshell或者SecureCRT等）使用密码登录系统了。
 
 ## 2、配置远程登录
 
@@ -136,6 +136,24 @@ Configuration summary
 ```
 
 如上是默认安装之后，各模块所在路径，可以通过编译选项指定，详见[官方指导文档](https://nginx.org/en/docs/configure.html)。安装好nginx之后，需要制作一个nginx.service文件，放在/lib/systemd/system/目录下，然后就可以使用`systemctl`命令来管理服务了。
+
+有时候需要使用第三方模块，对现有的nginx版本进行热升级步骤如下：
+- 下载tar包，解压后放在安装目录的modules目录下
+- 编译选项添加--add-module=/usr/local/src/third-party-module，并重新编译
+- 执行make，但不要执行make install！！
+- 备份原有文件
+- 拷贝objs下编译好的文件到执行目录替换原有的nginx，要加-f选项
+- 向master进程发送热升级信号：kill -USR2 pidOfOldMaster
+- 在确认新的nginx版本的master进程起来之后，优雅的关闭老的worker进程：kill -WINCH pidOfOldMaster
+
+这个时候就会发现nginx老版本的master进程还在，并不会自动推出，允许我们通过reload回退，但是已经没有worker进程了，版本绘图过程如下：
+- 将之之前备份的文件重新复制回去
+- 不重载配置文件的情况下启动旧版的worker进程：kill -HUB pidOfNewMaster
+- 向新进程发出平滑升级（回退）的信号：kill -USR2 pidOfNewMaster
+- 优雅的关闭新进程的worker：kill -WINCH pidOfNewMaster
+- 同样新版本的master进程也不会自动退出
+
+> 日志切割：kill -USR1 pidOfMaster/nginx -s reopen，执行后需要sleep 2～5s，以保证日志完整性
 
 ```bash
 # Stop dance for nginx
@@ -364,6 +382,8 @@ apt install libmagickcore-6.q16-6-extra
   * Plain text editor
   
 **Collabora Online - Built-in CODE Server**这个插件很大，直接从appstore安装的话会出现***Operation timeout***的告警，可之间在系统下执行`sudo -u www-data php -d memory_limit=1024M ./occ app:install richdocumentscode`命令，安装好了重启服务即可使用文档在线预览和编辑。
+
+> 如果使用appstore下载总是出现超时，可以下载使用github上的tar包，然后再解压到nextcloud/data/apps/，记得修改所属组和所有者。然后再在浏览器界面的应用管理，启用该应用即可。
 
 #### 7. 建议禁用的插件
 
