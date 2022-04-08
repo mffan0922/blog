@@ -81,36 +81,11 @@ Nginx是一款高性能的反向代理服务器，支持高并发是它极具优
 
 ```bash
 # 准备工作，安装一些依赖模块
-apt install libpcre3 libpcre3-dev openssl libssl-dev zlib1g-dev
+apt install libpcre3 libpcre3-dev openssl libssl-dev zlib1g-dev libgeoip-dev
 # 从nginx官网下载安装包并安装
 wget https://nginx.org/download/nginx-1.20.2.tar.gz
 tar -xzf nginx-1.20.2.zip && cd nginx-1.20.2
-./configure  --prefix=/usr/local/nginx \
---with-http_ssl_module \
---with-http_v2_module \
---with-http_realip_module \
---with-http_addition_module \
---with-http_sub_module \
---with-http_dav_module \
---with-http_flv_module \
---with-http_mp4_module \
---with-http_gunzip_module \
---with-http_gzip_static_module \
---with-http_auth_request_module \
---with-http_random_index_module \
---with-http_secure_link_module \
---with-http_degradation_module \
---with-http_slice_module \
---with-http_stub_status_module \
---with-mail \
---with-mail_ssl_module \
---with-stream \
---with-stream_ssl_module \
---with-stream_realip_module \
---with-stream_ssl_preread_module \
---with-threads \
---user=www-data \
---group=www-data
+./configure  --prefix=/usr/local/nginx --with-select_module --with-poll_module --with-threads --with-file-aio--with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_addition_module --with-http_geoip_module --with-http_sub_module --with-http_dav_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_auth_request_module --with-http_random_index_module --with-http_secure_link_module --with-http_degradation_module --with-http_slice_module --with-http_stub_status_module --with-mail --with-mail_ssl_module --with-stream --with-stream_ssl_module --with-stream_realip_module --with-stream_geoip_module --with-stream_ssl_preread_module --user=www-data --group=www-data
 make && make install
 ln -s /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 
@@ -139,21 +114,21 @@ Configuration summary
 
 有时候需要使用第三方模块，对现有的nginx版本进行热升级步骤如下：
 - 下载tar包，解压后放在安装目录的modules目录下
-- 编译选项添加--add-module=/usr/local/src/third-party-module，并重新编译
-- 执行make，但不要执行make install！！
+- 编译选项添加`--add-module=/usr/local/src/third-party-module`，并重新编译
+- 执行`make`，但不要执行`make install`！！
 - 备份原有文件
 - 拷贝objs下编译好的文件到执行目录替换原有的nginx，要加-f选项
-- 向master进程发送热升级信号：kill -USR2 pidOfOldMaster
-- 在确认新的nginx版本的master进程起来之后，优雅的关闭老的worker进程：kill -WINCH pidOfOldMaster
+- 向master进程发送热升级信号：`kill -USR2 pidOfOldMaster`
+- 在确认新的nginx版本的master进程起来之后，优雅的关闭老的worker进程：`kill -WINCH pidOfOldMaster`
 
 这个时候就会发现nginx老版本的master进程还在，并不会自动推出，允许我们通过reload回退，但是已经没有worker进程了，版本绘图过程如下：
 - 将之之前备份的文件重新复制回去
-- 不重载配置文件的情况下启动旧版的worker进程：kill -HUB pidOfNewMaster
-- 向新进程发出平滑升级（回退）的信号：kill -USR2 pidOfNewMaster
-- 优雅的关闭新进程的worker：kill -WINCH pidOfNewMaster
+- 不重载配置文件的情况下启动旧版的worker进程：`kill -HUB pidOfNewMaster`
+- 向新进程发出平滑升级（回退）的信号：`kill -USR2 pidOfNewMaster`
+- 优雅的关闭新进程的worker：`kill -WINCH pidOfNewMaster`
 - 同样新版本的master进程也不会自动退出
 
-> 日志切割：kill -USR1 pidOfMaster/nginx -s reopen，执行后需要sleep 2～5s，以保证日志完整性
+> 日志切割：`kill -USR1 pidOfMaster/nginx -s reopen`，执行后需要sleep 2～5s，以保证日志完整性
 
 ```bash
 # Stop dance for nginx
