@@ -85,7 +85,38 @@ apt install libpcre3 libpcre3-dev openssl libssl-dev zlib1g-dev libgeoip-dev
 # 从nginx官网下载安装包并安装
 wget https://nginx.org/download/nginx-1.20.2.tar.gz
 tar -xzf nginx-1.20.2.zip && cd nginx-1.20.2
-./configure  --prefix=/usr/local/nginx --with-select_module --with-poll_module --with-threads --with-file-aio--with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_addition_module --with-http_geoip_module --with-http_sub_module --with-http_dav_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_auth_request_module --with-http_random_index_module --with-http_secure_link_module --with-http_degradation_module --with-http_slice_module --with-http_stub_status_module --with-mail --with-mail_ssl_module --with-stream --with-stream_ssl_module --with-stream_realip_module --with-stream_geoip_module --with-stream_ssl_preread_module --user=www-data --group=www-data
+./configure  --prefix=/usr/local/nginx \
+--with-select_module \
+--with-poll_module \
+--with-threads \
+--with-file-aio \
+--with-http_ssl_module \
+--with-http_v2_module \
+--with-http_realip_module \
+--with-http_addition_module \
+--with-http_geoip_module \
+--with-http_sub_module \
+--with-http_dav_module \
+--with-http_flv_module \
+--with-http_mp4_module \
+--with-http_gunzip_module \
+--with-http_gzip_static_module \
+--with-http_auth_request_module \
+--with-http_random_index_module \
+--with-http_secure_link_module \
+--with-http_degradation_module \
+--with-http_slice_module \
+--with-http_stub_status_module \
+--with-mail \
+--with-mail_ssl_module \
+--with-stream \
+--with-stream_ssl_module \
+--with-stream_realip_module \
+--with-stream_geoip_module \
+--with-stream_ssl_preread_module \
+--user=www-data \
+--group=www-data \
+--add-module=/opt/source-code/nginx-1.20.2/modules/headers-more-nginx-module
 make && make install
 ln -s /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 
