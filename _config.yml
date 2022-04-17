@@ -5,22 +5,18 @@ header-img: img/home-bg.jpg
 email: mffan0922@163.com
 description: "一只特立独行的猪~"
 keyword: "网络, Networks, CDN, 内容分发, Linux, Bash, Python, 爬虫, 诲之, Manford"
-url: "http://blog.rustle.cc"
+url: "https://blog.rustle.cc"
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
 
 # Publish posts or collection documents with a future date.
 future: true
 
-# SNS settings
+# SNS settings, plz check _includes/sns-links.html for more icon
 RSS: false
-weibo_username:     7672002954
-zhihu_username:     Manford123
 github_username:    mffan0922
-twitter_username:   huxpro
-#facebook_username:  huxpro
-#linkedin_username:  firstname-lastname-idxxxx
-
-
+weibo_username:     ericfanme
+zhihu_username:     Manford123
+mail_username:      mffan0922
 
 # Build settings
 # from 2016, 'pygments' is unsupported on GitHub Pages. Use 'rouge' for highlighting instead.
@@ -103,10 +99,10 @@ page-mathjax: false
 # Friends
 friends: [
     {
-        title: "乱序（Midare）",
-        href: "http://mida.re/"
+        title: "Jekyll官方",
+        href: "http://jekyllcn.com/"
     }, {
-        title: "Sherry Woo",
-        href: "https://sherrywoo.me/"
+        title: "SRE运维博客",
+        href: "https://www.cnsre.cn/"
     }
 ]
