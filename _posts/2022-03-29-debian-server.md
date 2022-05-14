@@ -12,7 +12,7 @@ tags         :
                - Server
 ---
 
-当一个念头萌生的时候，便一发不可收拾。昨天下午loading稍微轻了一点，我就又开始想要不做个自己的网盘吧，有好多东西没有统一的地方放，主要是坚果云不能再Debian下使用非root用户登录；然后又想要不把Server换成Debian吧，这样服务端和客户端都统一了，感觉也挺不错的；再然后就是想着完整的记录下部署过程，云服务器也快到期了，方便下次部署。于是，就在备份数据之后，~~把阿里云的服务器重置成Debian10.5了~~把腾讯云的服务器安装成Debian11.3了......
+当一个念头萌生的时候，便一发不可收拾。昨天下午loading稍微轻了一点，我就又开始想要不做个自己的网盘吧，有好多东西没有统一的地方放，主要是坚果云不能在Debian下使用非root用户登录；然后又想要不把Server换成Debian吧，这样服务端和客户端都统一了，感觉也挺不错的；再然后就是想着完整的记录下部署过程，云服务器也快到期了，方便下次部署。于是，就在备份数据之后，~~把阿里云的服务器重置成Debian10.5了~~把腾讯云的服务器安装成Debian11.3了......
 
 > 买了腾讯云的VPS，换成Debian11.3，440大洋5年，配置是2C/4G/1000G/6M/60G，BGP线路，实际配置肯定会有缩水，但是也还行
 
@@ -40,9 +40,9 @@ PasswordAuthentication yes
  1. 生成密钥对 `ssh-keygen -t rsa -b 4096 -f ECX -C "key for ECX VPS"`
  2. 配置.ssh文件夹下的文件内容及权限
 	```bash
-	cat ECX.pub >> ~/.ssh/authorized_keys
-	chmod 700 ~/.ssh
-	chmod 600 ~/.ssh/authorized_keys
+	$ cat ECX.pub >> ~/.ssh/authorized_keys
+	$ chmod 700 ~/.ssh
+	$ chmod 600 ~/.ssh/authorized_keys
 	```
  3. 修改服务器ssh配置，取消密码登录
 	PasswordAuthentication yes → PasswordAuthentication no
@@ -56,21 +56,21 @@ PasswordAuthentication yes
 
 ```bash
 # 1. 修改PS1以及hostname
-echo 'PS1="\e[1;33m[ $? \u@\h \W]\$ \e[0m"' >> .bashrc
-hostnamectl set-hostname rustle
+$ echo 'PS1="\e[1;33m[ $? \u@\h \W]\$ \e[0m"' >> .bashrc
+$ hostnamectl set-hostname rustle
 
 # 2. 更新软件源并更新系统
-apt update && apt upgrade
+$ apt update && apt upgrade
 
 # 3. 安装配置防火墙，可以通过ufw -h获取帮助(如下顺序一定不能颠倒，不然你将永远失去你的机器...)
-apt install ufw
-ufw allow 22
-ufw allow 80
-ufw allow 443
-ufw enable
+$ apt install ufw
+$ ufw allow 22
+$ ufw allow 80
+$ ufw allow 443
+$ ufw enable
 
 # 4. 一些其他的软件
-apt install lrzsz curl wget gnupg2 ca-certificates lsb-release debian-archive-keyring dos2unix oathtool git
+$ apt install lrzsz curl wget gnupg2 ca-certificates lsb-release debian-archive-keyring dos2unix oathtool git
 ```
 
 `git`的配置详见上一篇博客。
@@ -81,11 +81,11 @@ Nginx是一款高性能的反向代理服务器，支持高并发是它极具优
 
 ```bash
 # 准备工作，安装一些依赖模块
-apt install libpcre3 libpcre3-dev openssl libssl-dev zlib1g-dev libgeoip-dev
+$ apt install libpcre3 libpcre3-dev openssl libssl-dev zlib1g-dev libgeoip-dev
 # 从nginx官网下载安装包并安装
-wget https://nginx.org/download/nginx-1.20.2.tar.gz
-tar -xzf nginx-1.20.2.zip && cd nginx-1.20.2
-./configure  --prefix=/usr/local/nginx \
+$ wget https://nginx.org/download/nginx-1.20.2.tar.gz
+$ tar -xzf nginx-1.20.2.zip && cd nginx-1.20.2
+$ ./configure  --prefix=/usr/local/nginx \
 --with-select_module \
 --with-poll_module \
 --with-threads \
@@ -117,8 +117,8 @@ tar -xzf nginx-1.20.2.zip && cd nginx-1.20.2
 --user=www-data \
 --group=www-data \
 --add-module=/opt/source-code/nginx-1.20.2/modules/headers-more-nginx-module
-make && make install
-ln -s /usr/local/nginx/sbin/nginx /usr/sbin/nginx
+$ make && make install
+$ ln -s /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 
 #-------------------------------------------------------------------
 Configuration summary
@@ -152,8 +152,8 @@ Configuration summary
 - 向master进程发送热升级信号：`kill -USR2 pidOfOldMaster`
 - 在确认新的nginx版本的master进程起来之后，优雅的关闭老的worker进程：`kill -WINCH pidOfOldMaster`
 
-这个时候就会发现nginx老版本的master进程还在，并不会自动推出，允许我们通过reload回退，但是已经没有worker进程了，版本绘图过程如下：
-- 将之之前备份的文件重新复制回去
+这个时候就会发现nginx老版本的master进程还在，并不会自动退出，允许我们通过reload回退，但是已经没有worker进程了，版本回退过程如下：
+- 将之前备份的文件重新复制回去
 - 不重载配置文件的情况下启动旧版的worker进程：`kill -HUB pidOfNewMaster`
 - 向新进程发出平滑升级（回退）的信号：`kill -USR2 pidOfNewMaster`
 - 优雅的关闭新进程的worker：`kill -WINCH pidOfNewMaster`
@@ -195,7 +195,7 @@ WantedBy=multi-user.target
 
 ## 5、开启https
 
-开启https有很多方法，可以直接通过直接购买，也可以通过免费的证书颁发机构申请，还可以自己做个CA，做自签名证书。对于钱包并不是那么鼓的同学来说，第一种方法可能会直接pass掉，做自签名证书也不麻烦，但是可能会出现浏览器依然判定为不安全的风险，因为CA并不是权威的。这里使用的是申请免费的证书，只不过有效期比较短，只有3个月，之后要续订，可以通过crontab服务自动化续订。
+开启https有很多方法，可以直接通过直接购买，也可以通过免费的证书颁发机构申请，还可以自己做个CA，做自签名证书。对于钱包并不是那么鼓的同学来说，第一种方法可能会直接pass掉，做自签名证书也不麻烦，但是可能会出现浏览器依然判定为不安全的风险，因为CA并不是权威的。这里使用的是申请免费的证书，只不过有效期比较短，只有3个月，之后要续订，可以通过`cron`服务自动化续订。
 
 - 复杂的方法
 	```bash
